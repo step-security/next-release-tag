@@ -39,18 +39,18 @@ jobs:
 
     steps:
       - name: Checkout branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Generate release tag
         id: generate_release_tag
-        uses: step-security/next-release-tag@v6.3.0
+        uses: step-security/next-release-tag@v6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_prefix: 'v'
           tag_template: 'yyyy.mm.dd.i'
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: step-security/action-gh-release@v3
         with:
           name: Release ${{ steps.generate_release_tag.outputs.next_release_tag }}
           tag_name: ${{ steps.generate_release_tag.outputs.next_release_tag }}
