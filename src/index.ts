@@ -1,7 +1,6 @@
 /* eslint-disable-next-line unicorn/prefer-node-protocol */
 import fs from 'fs';
 import * as core from '@actions/core';
-import { getInput, setFailed, setOutput, error } from '@actions/core';
 import axios, { isAxiosError } from 'axios';
 import {
   fetchLatestMatchingTag,
@@ -53,7 +52,7 @@ async function validateSubscription() {
 /* eslint-enable n/prefer-global/process, prettier/prettier, unicorn/escape-case, @typescript-eslint/prefer-nullish-coalescing, unicorn/no-process-exit, @stylistic/padding-line-between-statements */
 
 const resolvePreviousTag = async (tagPrefix: string) => {
-  const previousTagOverride = getInput('previous_tag');
+  const previousTagOverride = core.getInput('previous_tag');
 
   // If a previous tag is provided, use it
   if (previousTagOverride) {
@@ -71,8 +70,8 @@ const resolvePreviousTag = async (tagPrefix: string) => {
 
 const generateNextReleaseTag = async (): Promise<void> => {
   try {
-    const tagPrefix = getInput('tag_prefix');
-    const tagTemplate = getInput('tag_template');
+    const tagPrefix = core.getInput('tag_prefix');
+    const tagTemplate = core.getInput('tag_template');
     const previousTagOverride = await resolvePreviousTag(tagPrefix);
 
     const newReleaseTag = getNewReleaseTag(
@@ -84,13 +83,13 @@ const generateNextReleaseTag = async (): Promise<void> => {
     console.log(`Previous Release Tag: ${previousTagOverride}`);
     console.log(`New Release Tag: ${newReleaseTag}`);
 
-    setOutput('prev_release_tag', previousTagOverride);
-    setOutput('next_release_tag', newReleaseTag);
+    core.setOutput('prev_release_tag', previousTagOverride);
+    core.setOutput('next_release_tag', newReleaseTag);
   } catch (error_) {
     if (error_ instanceof Error) {
-      setFailed(error_.message);
+      core.setFailed(error_.message);
     } else {
-      error(JSON.stringify(error_));
+      core.error(JSON.stringify(error_));
     }
   }
 };
