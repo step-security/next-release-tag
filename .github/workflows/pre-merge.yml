@@ -1,0 +1,66 @@
+name: Pre Merge
+
+on:
+  workflow_dispatch:
+    branches-ignore:
+      - 'dependabot/**'
+
+    inputs:
+      expected_release_tag:
+        description: Expected release tag
+        required: true
+        type: string
+
+jobs:
+  Pre_Merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add pending status check
+        uses: myrotvorets/set-commit-status-action@v2.0.1
+        with:
+          status: pending
+          sha: ${{ github.sha }}
+
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setting up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Sanity testing of the action
+        id: generate_release_tag
+        uses: ./
+        with:
+          tag_prefix: 'v'
+          tag_template: 'yy.mm.i'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print output
+        run: |
+          echo "Expected output: ${{ inputs.expected_release_tag }}"
+          echo "Actual output: ${{ steps.generate_release_tag.outputs.next_release_tag }}"
+
+      - name: Fail if mismatch
+        if: ${{ inputs.expected_release_tag != steps.generate_release_tag.outputs.next_release_tag }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            core.setFailed('Actual and expected output doesnt match')
+
+      - name: Set final status check
+        uses: myrotvorets/set-commit-status-action@v2.0.1
+        if: always()
+        with:
+          status: ${{ job.status }}
+          sha: ${{ github.sha }}

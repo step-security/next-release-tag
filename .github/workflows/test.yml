@@ -1,0 +1,33 @@
+name: Test
+on:
+  pull_request:
+    types: [opened, reopened]
+    branches-ignore:
+      - 'dependabot-updates'
+  push:
+    branches-ignore:
+      - 'main'
+      - 'dependabot/**'
+
+jobs:
+  Test:
+    name: OS ${{ matrix.os }} + node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: [20, 22, 24]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Sanity testing of the action
+        id: generate_release_tag
+        uses: ./
+        with:
+          tag_prefix: 'v'
+          tag_template: 'yy.mm.i'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Manually check release tag
+        run: echo "${{ steps.generate_release_tag.outputs.next_release_tag }}"
