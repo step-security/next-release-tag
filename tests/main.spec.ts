@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => ({
   setOutput: vi.fn(),
   setFailed: vi.fn(),
   error: vi.fn(),
+  info: vi.fn(),
+  axiosPost: vi.fn(),
   fetchLatestMatchingTag: vi.fn(),
   fetchLatestReleaseTag: vi.fn(),
 }));
@@ -15,6 +17,12 @@ vi.mock('@actions/core', () => ({
   setOutput: mocks.setOutput,
   setFailed: mocks.setFailed,
   error: mocks.error,
+  info: mocks.info,
+}));
+
+vi.mock('axios', () => ({
+  default: { post: mocks.axiosPost },
+  isAxiosError: vi.fn(() => false),
 }));
 
 vi.mock('../src/services/githubService', () => ({
