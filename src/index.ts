@@ -3,7 +3,6 @@ import * as core from '@actions/core';
 import axios, { isAxiosError } from 'axios';
 import { run } from './main';
 
-/* eslint-disable n/prefer-global/process, prettier/prettier, unicorn/escape-case, @typescript-eslint/prefer-nullish-coalescing, unicorn/no-process-exit, @stylistic/padding-line-between-statements */
 async function validateSubscription() {
   const eventPath = process.env.GITHUB_EVENT_PATH;
   let repoPrivate: boolean | undefined;
@@ -50,7 +49,6 @@ async function validateSubscription() {
     core.info('Timeout or API not reachable. Continuing to next step.');
   }
 }
-/* eslint-enable n/prefer-global/process, prettier/prettier, unicorn/escape-case, @typescript-eslint/prefer-nullish-coalescing, unicorn/no-process-exit, @stylistic/padding-line-between-statements */
 
 const runWithSubscription = async (): Promise<void> => {
   await validateSubscription();
