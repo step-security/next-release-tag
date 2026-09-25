@@ -55,10 +55,7 @@ async function validateSubscription() {
   }
 }
 
-export const resolvePreviousTag = async (
-  tagPrefix: string,
-  isWildcard: boolean
-) => {
+export const resolvePreviousTag = async (tagPrefixInput: string) => {
   const previousTagOverride = getInput('previous_tag');
 
   // If a previous tag is provided, use it
@@ -66,26 +63,23 @@ export const resolvePreviousTag = async (
     return previousTagOverride;
   }
 
-  if (isWildcard) {
-    return fetchLatestMatchingTag(tagPrefix);
-  }
-
-  return fetchLatestReleaseTag();
+  // extractTagPrefix only shortens the input when a trailing wildcard was
+  // present, so an unchanged value means there was no wildcard.
+  const tagPrefix = extractTagPrefix(tagPrefixInput);
+  return tagPrefix === tagPrefixInput
+    ? fetchLatestReleaseTag()
+    : fetchLatestMatchingTag(tagPrefix);
 };
 
 export const run = async (): Promise<void> => {
   try {
     await validateSubscription();
     const tagPrefixInput = getInput('tag_prefix');
-    const tagPrefix = extractTagPrefix(tagPrefixInput);
     const tagTemplate = getInput('tag_template');
-    const previousTagOverride = await resolvePreviousTag(
-      tagPrefix,
-      tagPrefixInput !== tagPrefix
-    );
+    const previousTagOverride = await resolvePreviousTag(tagPrefixInput);
 
     const newReleaseTag = getNewReleaseTag(
-      tagPrefix,
+      extractTagPrefix(tagPrefixInput),
       tagTemplate,
       previousTagOverride
     );
