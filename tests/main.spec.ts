@@ -5,7 +5,6 @@ const mocks = vi.hoisted(() => ({
   getInput: vi.fn<(name: string) => string>(),
   setOutput: vi.fn(),
   setFailed: vi.fn(),
-  error: vi.fn(),
   info: vi.fn(),
   axiosPost: vi.fn(),
   fetchLatestMatchingTag: vi.fn(),
@@ -16,7 +15,6 @@ vi.mock('@actions/core', () => ({
   getInput: mocks.getInput,
   setOutput: mocks.setOutput,
   setFailed: mocks.setFailed,
-  error: mocks.error,
   info: mocks.info,
 }));
 
@@ -127,6 +125,23 @@ describe('run', () => {
     expect(mocks.setOutput).not.toHaveBeenCalled();
   });
 
+  it('strips a trailing wildcard before fetching matching tags', async () => {
+    vi.setSystemTime(new Date('2026-07-21'));
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    mockInputs({ tag_prefix: 'v*', tag_template: 'yy.mm.i' });
+    mocks.fetchLatestMatchingTag.mockResolvedValue('v26.07.01');
+
+    await run();
+
+    expect(mocks.fetchLatestMatchingTag).toHaveBeenCalledWith('v');
+    expect(mocks.fetchLatestReleaseTag).not.toHaveBeenCalled();
+    expect(mocks.setOutput).toHaveBeenCalledWith(
+      'next_release_tag',
+      'v26.07.02'
+    );
+    expect(mocks.setFailed).not.toHaveBeenCalled();
+  });
+
   it('calls setFailed when the tag prefix is invalid', async () => {
     mockInputs({ tag_prefix: 'v**', tag_template: 'yy.mm.i' });
 
@@ -143,7 +158,6 @@ describe('run', () => {
     await run();
 
     expect(mocks.setFailed).toHaveBeenCalledWith(JSON.stringify('boom'));
-    expect(mocks.error).not.toHaveBeenCalled();
     expect(mocks.setOutput).not.toHaveBeenCalled();
   });
 });
